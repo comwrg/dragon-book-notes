@@ -1,7 +1,9 @@
 # dragon-book-notes
 编译原理第二版笔记
 
-## 2.2
+## 第 2 章
+
+### 2.2
 
 <details><summary>上下文无关文法 构建一些想法</summary>
 
