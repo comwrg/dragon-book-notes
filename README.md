@@ -13,8 +13,8 @@ expr -> expr + term
       | expr - term
       | term
 
-term -> term * factor
-      | term / factor
+term -> term * digit
+      | term / digit
       | digit
 ```
 ```
@@ -23,8 +23,8 @@ expr -> term + expr
       | term - expr
       | term
 
-term -> term * factor
-      | term / factor
+term -> term * digit
+      | term / digit
       | digit
 
 + - 是左结合
