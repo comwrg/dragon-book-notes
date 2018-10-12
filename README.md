@@ -56,3 +56,42 @@ A -> Aα | β
 A -> βR
 R -> αR | ε
 ```
+<details><summary>尝试消除加减乘除左递归</summary>
+
+```
+expr -> expr + term
+      | expr - term
+      | term
+
+term -> term * digit
+      | term / digit
+      | digit
+
+对于expr
+A = expr
+α = + term | - term
+β = term
+   ||
+expr      -> term expr_tail
+expr_tail -> + term expr_tail | - term expr_tail | ε
+
+对于term
+A = term
+α = * digit | / digit
+β = digit
+
+term      -> digit term_tail
+term_tail -> * digit term_tail | / digit term_tail | ε
+
+
+最后合并
+expr      -> term expr_tail
+expr_tail -> + term expr_tail 
+           | - term expr_tail
+           | ε
+term      -> digit term_tail
+term_tail -> * digit term_tail
+           | / digit term_tail 
+           | ε
+```
+</details>
