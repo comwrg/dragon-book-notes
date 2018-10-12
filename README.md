@@ -95,3 +95,25 @@ term_tail -> * digit term_tail
            | ε
 ```
 </details>
+
+### 2.7
+<details><summary>变量作用域实现细节</summary>
+ 
+定义：符号表类`Symbol` 全局符号表`global_symbol` 一个全局符号表指针`p`   
+下面时伪代码   
+每当进入函数时，`push p; p = global_symbol;`   
+每当退出函数时，`pop p;`   
+每当进入块时， `new_symbol = new Symbol(); new_symbol.prev = p; p = new_symbol;`   
+每当退出块时, `p = p.prev;`   
+
+如果进入的块同时是函数， 先执行`进入函数`， 再执行`进入块`   
+如果退出的块同时是函数， 先执行`退出块`， 再执行`退出函数`  
+
+查找符号
+```
+for (pp = p; pp != NULL; pp = pp.prev) {
+    // 然后从符号表里查找即可
+}
+```
+
+</details>
