@@ -183,4 +183,39 @@ int main() {
     }
 }
 ```
+
+用索引从0开始写的代码
+```c
+#include <stdio.h>
+#include <memory.h>
+
+int main() {
+    char *b = "ababaa";
+    int n = strlen(b);
+    int f[n];
+
+    // 这里为什么用-1呢
+    // 因为s和t肯定要表示同一样东西， s表示的是头部匹配的长度， t表示的是尾部匹配的长度
+    // 那么开始的时候肯定是字符0和字符1开始比较
+    // 那么s和t肯定在最开始的时候肯定要相差一
+    // 无非s=-1， t=0， or， s=0，t=-1
+    // 如果s=-1， t=0这种， 那么是s从-1到n-2循环， 下面也肯定是f[s+1] = t; 所以肯定没法写
+    int t = -1;
+    f[0] = -1;
+    for (int s = 0; s < n-1; s++) {
+        while (t > -1 && b[s+1] != b[t+1])
+            t = f[t];
+        if (b[s+1] == b[t+1]) {
+            ++t;
+            f[s+1] = t;
+        } else {
+            f[s+1] = -1;
+        }
+    }
+
+    for (int s = 0; s < n; s++) {
+        printf("%d ", f[s]+1);
+    }
+}
+```
 </details>
