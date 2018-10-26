@@ -255,3 +255,205 @@ int main() {
 这和上面的是一样的，只不过*s*代表一个状态， 而*T*代表状态的集合 <br />
 
 </details>
+
+<details><summary>例3.21 NFA转DFA算法 C实现</summary>
+  
+只适用于龙书例3.21，写的不好，很多没有封装好 
+```c
+#include <stdio.h>
+#include <memory.h>
+#include <stdlib.h>
+
+/* copy from C docs */
+int compare_ints(const void* a, const void* b) {
+    int arg1 = *(const int*)a;
+    int arg2 = *(const int*)b;
+
+    if (arg1 < arg2) return -1;
+    if (arg1 > arg2) return 1;
+    return 0;
+}
+
+
+#define EPSILON 1
+#define SIZE 11
+
+int gh[SIZE][SIZE];
+
+struct status {
+    int *NFA;
+    int NFA_len;
+    int DFA;
+    int a;
+    int b;
+    int flag;
+};
+
+int is_same(int *a, int a_len, int *b, int b_len) {
+    if (a_len != b_len)
+        return 0;
+    for (int i = 0; i < a_len; ++i) {
+        if (a[i] != b[i])
+            return 0;
+    }
+    return 1;
+}
+
+int move(const int *T, const int T_len, int a, int *res, int res_len) {
+    for (int i = 0; i < T_len; ++i) {
+        for (int j = 0; j < SIZE; ++j) {
+            if (gh[T[i]][j] == a) {
+                res[res_len++] = j;
+            }
+        }
+    }
+    return res_len;
+}
+
+int e_closure(const int *T, const int T_len, int *res, int res_len) {
+    int *que = malloc(1024 * sizeof(int)); memcpy(que, T, T_len * sizeof(int));
+    int que_len = T_len;
+    for (int i = 0; i < que_len; ++i) {
+        for (int j = 0; j < SIZE; ++j) {
+            if (gh[que[i]][j] != EPSILON) {
+                continue;
+            }
+            for (int k = 0; k < que_len; ++k) { /* to checkout whether exists */
+                if (que[k] == j) {
+                    continue;
+                }
+            }
+            que[que_len++] = j;
+        }
+        res[res_len++] = que[i];
+    }
+    qsort(res, res_len, sizeof(int), compare_ints);
+    return res_len;
+}
+
+int main() {
+    /* gh data begin */
+    memset(gh, 0, sizeof(gh)); /* 0 mean unreachable */
+    gh[0][1] = EPSILON;
+    gh[0][7] = EPSILON;
+    gh[1][2] = EPSILON;
+    gh[1][4] = EPSILON;
+    gh[2][3] = 'a';
+    gh[3][6] = EPSILON;
+    gh[4][5] = 'b';
+    gh[5][6] = EPSILON;
+    gh[6][1] = EPSILON;
+    gh[6][7] = EPSILON;
+    gh[7][8] = 'a';
+    gh[8][9] = 'b';
+    gh[9][10] = 'b';
+    /* gh data end */
+
+    struct status *stat = malloc(1024 * sizeof(struct status));
+    memset(stat, 0, 1024 * sizeof(struct status));
+    int stat_len = 0;
+    int DFA_index = 'A';
+
+    int *T = malloc(1024 * sizeof(int));
+
+    stat[stat_len].NFA = malloc(1024 * sizeof(int));
+
+    *T = 0;
+    stat[stat_len].NFA_len = e_closure(T, 1, stat[stat_len].NFA, 0);
+    stat[stat_len].DFA = DFA_index++;
+    ++stat_len;
+
+    while (1) {
+        int idx = -1;
+        for (int i = 0; i < stat_len; ++i) {
+            if (!stat[i].flag) {
+                idx = i;
+                break;
+            }
+        }
+
+        if (idx == -1) {
+            break;
+        }
+        stat[idx].flag = 1;
+
+        /* a */
+        int *t = malloc(1024 * sizeof(int));
+        int t_len = move(stat[idx].NFA, stat[idx].NFA_len, 'a', t, 0);
+
+        int *res = malloc(1024 * sizeof(int));
+        int res_len = e_closure(t, t_len, res, 0);
+
+        free(t), t = NULL;
+
+        for (int i = 0; i < stat_len; ++i) {
+            if (is_same(stat[i].NFA, stat[i].NFA_len, res, res_len)) {
+                free(res), res = NULL;
+
+                stat[idx].a = stat[i].DFA;
+                goto b;
+            }
+        }
+
+
+        stat[idx].a = DFA_index;
+
+        stat[stat_len].NFA = res;
+        stat[stat_len].NFA_len = res_len;
+        stat[stat_len].DFA = DFA_index++;
+        ++stat_len;
+        /* end a */
+
+        b:
+        /* b */
+        t = malloc(1024 * sizeof(int));
+        t_len = move(stat[idx].NFA, stat[idx].NFA_len, 'b', t, 0);
+
+        res = malloc(1024 * sizeof(int));
+        res_len = e_closure(t, t_len, res, 0);
+
+        free(t), t = NULL;
+
+        for (int i = 0; i < stat_len; ++i) {
+            if (is_same(stat[i].NFA, stat[i].NFA_len, res, res_len)) {
+                free(res), res = NULL;
+
+                stat[idx].b = stat[i].DFA;
+                goto ct;
+            }
+        }
+
+
+        stat[idx].b = DFA_index;
+
+        stat[stat_len].NFA = res;
+        stat[stat_len].NFA_len = res_len;
+        stat[stat_len].DFA = DFA_index++;
+        ++stat_len;
+        /* end b */
+
+        ct:
+        continue;
+    }
+
+    for (int i = 0; i < stat_len; ++i) {
+        printf("{ %d", stat[i].NFA[0]);
+        for (int j = 1; j < stat[i].NFA_len; ++j) {
+            printf(", %d", stat[i].NFA[j]);
+        }
+        printf(" } | %c | %c | %c ", stat[i].DFA, stat[i].a, stat[i].b);
+
+        printf("\n");
+    }
+
+    /* free */
+    for (int i = 0; i < stat_len; ++i) {
+        free(stat[i].NFA), stat[i].NFA = NULL;
+    }
+    free(stat);
+
+    return 0;
+}
+
+```
+ </details>
