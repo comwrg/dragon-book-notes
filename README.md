@@ -457,3 +457,33 @@ int main() {
 
 ```
  </details>
+
+
+### 3.9
+<details><summary>根据正则表达式直接创建DFA</summary>
+
+`firstpos`, `lastpost` 这两个看了半天才知道是啥意思 <br />
+如果把节点n看出一颗二叉树，就很好理解 <br />
+`firstpos(n)` 就是二叉树的左子树的集合 <br />
+`lastpos(n)` 就是二叉树右子树的集合 <br />
+假设一个n是 `(a|b|c)z` <br />
+那么将n按照龙书上的方法转化成一颗树 <br />
+那么`firstpos`就是`{a, b, c}` <br />
+`lastpos(n)`就是{z} <br />
+接下来把字母换成序号就行 <br />
+
+其他还是很好理解的 <br />
+`nullable` 就是是否可以匹配空串 <br />
+`followpos` 就是下一个字符可能的集合 <br />
+
+搞清楚这些定义之后，就可以计算`followpos`，因为这些定义都是为计算`followpos`服务的
+
+然后只要根据节点的类型做对应的操作就可以了
+
+
+
+
+</details>
+
+
+
